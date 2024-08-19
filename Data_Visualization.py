@@ -1,64 +1,47 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
 
-# Caricare il file CSV
-file_path = 'Weather/city_attributes_new.csv'  # Sostituisci con il percorso corretto del file CSV
-cities_df = pd.read_csv(file_path)
+# Carica i dati dai file CSV
+humidity_df = pd.read_csv('Weather/humidity_new.csv', parse_dates=['datetime'])
+pressure_df = pd.read_csv('Weather/pressure_new.csv', parse_dates=['datetime'])
+temperature_df = pd.read_csv('Weather/temperature_new.csv', parse_dates=['datetime'])
 
-# Definire gli offset per le città per evitare la sovrapposizione
-offsets = {
-    'Seattle': (0.5, -0.5),
-    'Portland': (0.5, -0.5),
-    'San Francisco': (0.5, -0.5),
-    'Los Angeles': (0.5, -0.5),
-    'San Diego': (0.5, -0.5),
-    'Las Vegas': (0.5, 0.5),
-    'Phoenix': (0.5, 0.5),
-    'Albuquerque': (0.5, 0.5),
-    'Denver': (0.5, 0.5),
-    'San Antonio': (-5.5, 0.5),
-    'Dallas': (-0.5, 0.5),
-    'Houston': (-0.5, 0.5),
-    'Minneapolis': (0.5, -0.5),
-    'Chicago': (0.5, -0.5),
-    'Detroit': (0.5, -0.5),
-    'Indianapolis': (0.5, -0.5),
-    'Saint Louis': (0.5, -0.5),
-    'Kansas City': (-0.5, 1.2),
-    'Nashville': (0.5, -0.5),
-    'Atlanta': (0.5, -0.5),
-    'Charlotte': (0.5, -0.5),
-    'Jacksonville': (0.5, -0.5),
-    'Miami': (0.5, -0.5),
-    'Pittsburgh': (0.5, -0.5),
-    'Toronto': (0.5, -0.5),
-    'Philadelphia': (0.5, -0.5),
-    'New York': (0.5, -0.5),
-    'Montreal': (0.5, -0.5),
-    'Boston': (0.5, -0.5),
-    # Aggiungi altre città se necessario
-}
+# Seleziona i dati per Los Angeles
+los_angeles_humidity = humidity_df[['datetime', 'Los Angeles']]
+los_angeles_pressure = pressure_df[['datetime', 'Los Angeles']]
+los_angeles_temperature = temperature_df[['datetime', 'Los Angeles']]
 
-# Creazione della figura e dell'asse con una proiezione geografica
-fig = plt.figure(figsize=(15, 10))
-ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+# Imposta la colonna 'datetime' come indice
+los_angeles_humidity.set_index('datetime', inplace=True)
+los_angeles_pressure.set_index('datetime', inplace=True)
+los_angeles_temperature.set_index('datetime', inplace=True)
 
-# Aggiungere caratteristiche della mappa come linee costiere e confini
-ax.add_feature(cfeature.COASTLINE)
-ax.add_feature(cfeature.BORDERS, linestyle=':')
-ax.add_feature(cfeature.LAND)
-ax.add_feature(cfeature.OCEAN)
+# Crea una figura e tre subplot
+plt.figure(figsize=(14, 10))
 
-# Aggiungere le città alla mappa
-for index, row in cities_df.iterrows():
-    ax.plot(row['Longitude'], row['Latitude'], marker='o', color='red', markersize=5, transform=ccrs.Geodetic())
-    offset_lon, offset_lat = offsets.get(row['City'], (0.5, 0.5))  # Offset di default se la città non è nel dizionario
-    ax.text(row['Longitude'] + offset_lon, row['Latitude'] + offset_lat, row['City'], transform=ccrs.Geodetic())
+# Grafico dell'umidità
+plt.subplot(3, 1, 1)
+plt.plot(los_angeles_humidity, label='Humidity', color='blue')
+plt.title('Humidity in Los Angeles')
+plt.ylabel('Humidity (%)')
+plt.grid(True)
 
-# Impostare i limiti della mappa (opzionale, centrato sugli Stati Uniti e Canada)
-ax.set_extent([-130, -60, 20, 60], crs=ccrs.PlateCarree())
+# Grafico della pressione
+plt.subplot(3, 1, 2)
+plt.plot(los_angeles_pressure, label='Pressure', color='green')
+plt.title('Pressure in Los Angeles')
+plt.ylabel('Pressure (hPa)')
+plt.grid(True)
 
-plt.title('Città in Nord America')
+# Grafico della temperatura
+plt.subplot(3, 1, 3)
+plt.plot(los_angeles_temperature, label='Temperature', color='red')
+plt.title('Temperature in Los Angeles')
+plt.ylabel('Temperature (°C)')
+plt.grid(True)
+
+# Migliora la spaziatura tra i subplot
+plt.tight_layout()
+
+# Mostra i grafici
 plt.show()
