@@ -5,5 +5,6 @@
 - creato un nuovo ambiente virtuale con anaconda
 - Env con anaconda è andato a buon fine
 - plot della serie temporale di umidità, pressione e temperatura di una città (Los Angeles)
-- Eseguito ADF test per l'umidità, pressione e temperatura. Si conclude che la serie temporale è stazionaria con un p value < 0.05
+- Eseguito ADF test per l'umidità, pressione e temperatura. Si conclude che la serie temporale è stazionaria con un p value < 0.05 e D=1
 - Eseguita la decomposizione della serie
+- per l'autocorrelazione e l'autocorrelazione parzializzata non ho una soglia significativa per poter ottenere i paramentri q e p.
