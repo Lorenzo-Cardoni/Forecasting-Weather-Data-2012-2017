@@ -8,3 +8,9 @@
 - Eseguito ADF test per l'umidità, pressione e temperatura. Si conclude che la serie temporale è stazionaria con un p value < 0.05 e D=1
 - Eseguita la decomposizione della serie
 - per l'autocorrelazione e l'autocorrelazione parzializzata non ho una soglia significativa per poter ottenere i paramentri q e p.
+- riprovando ancora e ancora ho provato ad inserire manualmente l'intervallo di confidenza. Tanti lags sono al di fuori di tale intervallo. 
+- inizio ad addestrare un modello ARIMA semplice
+- Provo ad utilizzare il codice delle girl per l'addestramento del modello ARIMA
+- Erano presenti due valori nan
+- Fatto forecasting con modello ARIMA 1 0 1
+- 
