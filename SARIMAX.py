@@ -8,6 +8,7 @@ import sklearn.metrics as met
 from ARIMA import ADF_test
 from ARIMA import ACF_PACF
 from statsmodels.tsa.seasonal import seasonal_decompose
+import numpy as np
 
 # Caricamento del dataset
 file = 'Weather/temperature_new.csv'
@@ -19,6 +20,11 @@ df.set_index('datetime', inplace=True)
 
 # Seleziona la colonna della temperatura, ad esempio Los Angeles
 temperature = df['Los Angeles']
+
+# Controlla e gestisci i valori NaN o infiniti
+temperature.replace([np.inf, -np.inf], np.nan, inplace=True)  # Sostituisci inf con NaN
+temperature.interpolate(method='time', inplace=True)  # Interpolazione dei valori mancanti
+
 
 # Decomposizione stagionale
 seasonal_diff = seasonal_decompose(temperature, model='additive', extrapolate_trend='freq').seasonal
@@ -116,11 +122,11 @@ ADF_test(seasonal_diff)
 ACF_PACF(seasonal_diff, 'SARIMAX/ACF_PACF.png')
 
 # Esecuzione del modello e training
-SARIMAX_model(1, 0, 2, 1, 0, 1, 7, temperature)
-pred_uc, test_data = train_SARIMAX(1, 0, 2, 1, 0, 1, 7, temperature)
+SARIMAX_model(1, 0, 1, 25, 1, 25, 24 , temperature)
+pred_uc, test_data = train_SARIMAX(1, 0, 1, 25, 1,25, 24, temperature)
 
 # Previsione successiva
-next_prediction(1, 0, 1, 40, 0, 20, 7, temperature)
+next_prediction(1, 0, 1, 25, 1,25,24 , temperature)
 
 # Calcolo degli errori
 predicted = pred_uc.predicted_mean
