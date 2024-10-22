@@ -1,0 +1,36 @@
+Ricevimento Forecasting 02/09
+- studio di umidità, pressione e temperatura? più città?
+- presenti due valori NULL
+- risultati ADF test
+- Scelta parametri ARIMA
+- Scelta parametri SARIMAX
+
+pmdARIMA autoARIMA
+
+Da riniziare
+
+Fare raggruppamento dei campioni del dataset, fare la media di ogni settimana almeno. 
+Rieseguire la ADF
+
+Qlik--------------------------------------------------------------
+x Aggiungere le barre di ricerca 
+x Ingrandire Radar
+x Giustificare suddivisione delle analisi tra i progetti
+x Previsione medagliere?
+
+Forecasting-------------------------------------------------------
+x Raggruppamento dati
+x ADF_TEST
+"il grafico mostra una componente stagionale, quindi si potrebbe passare subito al modello SARIMAX, ma volendo eseguire una analisi accurata e robusta si testerà anche il modello ARIMA"
+x ARIMA
+x SARIMAX
+x Fare prediction out sample
+- relazione
+
+
+
+Classification & Clustering---------------------------------------
+- Aggiustare grid search
+- DBScan fare prove con altre combinazioni di dati
+
+

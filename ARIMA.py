@@ -1,16 +1,12 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
-from statsmodels.tsa.arima.model import ARIMA
-import datetime as dt
+import pmdarima as pm
 from sklearn.model_selection import train_test_split
 import sklearn.metrics as met
 import numpy as np
-from statsmodels.tsa.stattools import adfuller
-
 
 # Caricamento del dataset
-file = 'Weather/temperature_new.csv'
+file = 'Weather/temperature4.csv'
 df = pd.read_csv(file)
 
 # Imposta la colonna datetime come indice
@@ -21,89 +17,92 @@ df.set_index('datetime', inplace=True)
 df['Los Angeles'].replace([np.inf, -np.inf], np.nan, inplace=True)  # Sostituisci inf con NaN
 df['Los Angeles'].interpolate(method='time', inplace=True)  # Interpolazione dei valori mancanti
 
-# Funzione per ACF e PACF
-def ACF_PACF(df, path_name):
-    fig = plt.figure(figsize=(12, 8))
-    ax1 = fig.add_subplot(211)
-    fig = sm.graphics.tsa.plot_acf(df[1:], lags=40, ax=ax1)  # Valore diff=NaN ignorato
-    ax2 = fig.add_subplot(212)
-    sm.graphics.tsa.plot_pacf(df[1:], lags=40, ax=ax2)
-    plt.savefig(path_name)
-    plt.show()
+stag = 12 # stagionalità della serie temporale
 
-
-# ADF test per la stazionarietà
-def ADF_test(df):
-    result2 = adfuller(df.values)
-    print('ADF Statistic: %f' % result2[0])
-    print('p-value: %f' % result2[1])
-
-def ARIMA_model(p, d, q, df):
-    model = ARIMA(df.values, order=(p, d, q))
-    ax = plt.gca()
-    results = model.fit()
-    plt.plot(df)
-    plt.plot(pd.DataFrame(results.fittedvalues, columns=['Los Angeles']).set_index(df.index), color='red')
-    ax.legend(['Temperature', 'Forecast'])
-    plt.savefig('ARIMA/Predictions', bbox_inches='tight')
-    ax.set_xlim(dt.datetime(2017, 1, 1), dt.datetime(2017, 11, 30))
-    plt.show()
-    print(results.summary())
-
-    # residual error
-    residuals = pd.DataFrame(results.resid).set_index(df.index)
-    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    residuals.plot(title="Residuals", ax=ax[0])
-    residuals.plot(kind='kde', title='Density', ax=ax[1])
-    plt.savefig('ARIMA/Residual_Error', bbox_inches='tight')
-    plt.show()
-
-    results.plot_diagnostics(figsize=(12, 8))
-    plt.savefig('ARIMA/Diagnostics', bbox_inches='tight')
-    plt.show()
-
-
-# Funzione per addestrare il modello ARIMA
-def train_ARIMA(p, d, q, df):
-    train_data, test_data = train_test_split(df, test_size=0.2, shuffle=False)
-    model = ARIMA(train_data, order=(p, d, q))
-    arima_model = model.fit()
+# Funzione per addestrare il modello ARIMA usando auto_arima
+def auto_arima_model(df):
+    # Usa auto_arima per selezionare i migliori parametri (senza stagionalità)
+    model = pm.auto_arima(df, 
+                          seasonal=True,    # Disabilita la stagionalità
+                          m=stag,   
+                          stepwise=True,        # Ricerca dei parametri passo-passo
+                          suppress_warnings=True, 
+                          trace=True)           # Mostra le informazioni del processo
     
-    pred_uc = arima_model.get_forecast(steps=len(test_data))
-    pred_ci = pred_uc.conf_int()
+    # Fitta il modello sui dati di addestramento
+    model.fit(df)
+    
+    print(model.summary())
+    
+    return model
+
+
+# Funzione per il forecasting usando il modello auto_arima
+def forecast_auto_arima(model, train_data, test_data):
+    # Predizione
+    forecast = model.predict(n_periods=len(test_data), return_conf_int=True)
+    pred_mean = forecast[0]
+    pred_ci = forecast[1]
     
     # Grafico dei risultati
     ax = train_data.plot(color='b', label='Train')
     test_data.plot(color='r', label='Test', ax=ax)
-    pred_uc.predicted_mean.plot(ax=ax, label='Forecast', style='k--')
-    ax.fill_between(pred_ci.index, pred_ci.iloc[:, 0], pred_ci.iloc[:, 1], color='k', alpha=.05)
+    pd.Series(pred_mean, index=test_data.index).plot(ax=ax, label='Forecast', style='k--')
     
+    ax.fill_between(test_data.index, pred_ci[:, 0], pred_ci[:, 1], color='k', alpha=.15)
     plt.legend()
+    plt.savefig("ARIMA\sarimax4.png")
     plt.show()
     
-    return pred_uc, test_data
+    return pred_mean
 
-# Esegui il test di stazionarietà e il training del modello
-ADF_test(df['Los Angeles'])
 
-# Plot ACF e PACF
-ACF_PACF(df['Los Angeles'], 'ARIMA')
+# Funzione per il forecasting usando il modello auto_arima
+def forecast_auto_arima2(model, data, period):
+    # Predizione
+    forecast = model.predict(period, return_conf_int=True)
+    pred_mean = forecast[0]
+    pred_ci = forecast[1]
+    
+    date_rng = pd.date_range(start=data.index[-1], periods=period, freq='M')
 
-ARIMA_model(1, 0, 0, df['Los Angeles'])
+    # Grafico dei risultati
+    ax = data.plot(color='b', label='data')
+    pd.Series(pred_mean, index=date_rng).plot(ax=ax, label='Forecast', style='k--')
+    
+    ax.fill_between(date_rng, pred_ci[:, 0], pred_ci[:, 1], color='k', alpha=.15)
+    plt.legend()
+    plt.savefig("ARIMA\sarimax_outsample4.png")
+    plt.show()
+    
+    return pred_mean
 
-# Allenamento del modello ARIMA
-p, d, q = 1, 0, 0  # Ordini dell'ARIMA da regolare in base ai risultati di ACF/PACF
-pred_uc, test_data = train_ARIMA(p, d, q, df['Los Angeles'])
+# Dividi i dati in train e test set (80% train, 20% test)
+train_data, test_data = train_test_split(df['Los Angeles'], test_size=0.2, shuffle=False)
+
+# Allenamento del modello con auto_arima
+model = auto_arima_model(train_data)
+
+model.plot_diagnostics()
+plt.show()
+
+# Esegui il forecasting sui dati di test
+predicted = forecast_auto_arima(model, train_data, test_data)
+
+# Esegui il forecasting sui dati di test
+predicted2 = forecast_auto_arima2(model, df['Los Angeles'], 36)
 
 # Calcolo delle metriche di errore
-predicted = pred_uc.predicted_mean
 mape = met.mean_absolute_percentage_error(test_data, predicted)
-sqe = met.mean_squared_error(test_data, predicted)
+mse = met.mean_squared_error(test_data, predicted)
 mae = met.mean_absolute_error(test_data, predicted)
 r2 = met.r2_score(test_data, predicted)
 
 print(f"MAPE: {mape}")
-print(f"MSE: {sqe}")
+print(f"MSE: {mse}")
 print(f"MAE: {mae}")
 print(f"R^2: {r2}")
+
+
+
 
