@@ -18,6 +18,9 @@ The dataset consists of hourly temperature readings from several US cities over 
 - **Datetime**: Timestamp for each observation.
 - **City Temperatures**: Temperatures in cities including Los Angeles, Vancouver, Portland, San Francisco, and others.
 
+## PDF
+In the second part of `Progetto_Classification_Clustering_Forecasting.pdf` file is reported the result of this work.
+
 ## Requirements
 
 - Python 3.x
